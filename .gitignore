@@ -2,6 +2,10 @@
 .env.local
 .env.*
 
+
+*.sqlite3
+
+
 rural-8c3b7-firebase-adminsdk-fbsvc-6770c7818c.json
 firebase-adminsdk*.json
 
