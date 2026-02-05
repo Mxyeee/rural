@@ -28,6 +28,7 @@ AUTHETICATION: ALL PROFILES OF THE PEOPLE WHO REGISTERED
 
 
 TO EXECUTE THE CODE AND VIEW THE SITE: 
-ensure the above .env file setup is completed first (create a new file named .env and insert the FIREBASE_SERVICE_ACCOUNT into it)
-in terminal run -> python manage.py runserver 
+1. ensure the above .env file setup is completed first (create a new file named .env and insert the FIREBASE_SERVICE_ACCOUNT into it)
+2. in terminal run -> pip install -r requirements.txt
+3. in terminal run -> python manage.py runserver 
 
