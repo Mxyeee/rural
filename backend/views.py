@@ -128,7 +128,7 @@ def google_login(request):
 @csrf_exempt
 def logout(request):
     request.session.flush()
-    return render(request, "login.html")
+    return redirect("/")
 
 def signUp(request):
     return render(request, "registration.html")
