@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign In</title>
+</head>
+<body>
+
+<form action="{% url 'postsignIn' %}" method="post" novalidate>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            autocomplete="email"
+        >
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            autocomplete="current-password"
+        >
+    </div>
+
+    <div class="form-actions">
+        <button type="submit">Sign In</button>
+        <a href="{% url 'signUp' %}">Sign Up</a>
+    </div> 
+</form>
+
+<button type="button" id="googleSignInBtn">Sign in with Google</button>
+
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+    import {
+        getAuth,
+        signInWithPopup,
+        GoogleAuthProvider
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD1Sv6O2qN29PJobkUMEQDQGqSW86gBbWo",
+        authDomain: "rural-8c3b7.firebaseapp.com",
+        projectId: "rural-8c3b7",
+        appId: "1:123456789012:web:abcdef1234567890"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    document.getElementById("googleSignInBtn").addEventListener("click", async () => {
+
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            const idToken = await user.getIdToken();
+
+            await fetch("/google-login/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ token: idToken })
+            });
+
+            window.location.href = "home/";
+
+        } catch (error) {
+            console.error("Google sign-in error:", error);
+        }
+    });
+</script>

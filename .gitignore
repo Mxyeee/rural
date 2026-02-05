@@ -1,0 +1,9 @@
+.env
+.env.local
+.env.*
+
+rural-8c3b7-firebase-adminsdk-fbsvc-6770c7818c.json
+firebase-adminsdk*.json
+
+node_modules/
+__pycache__/

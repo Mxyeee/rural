@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>main</title>
+</head>
+<body>
+<div>
+    <div>
+        <input class="hidden" id="picture" name="picture" type="file">          
+    </div>
+    <div class="flex items-center justify-center min-h-[500px] bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <img 
+            id="preview"
+            class="max-w-full max-h-[500px] rounded-lg shadow-md object-contain hidden"
+            alt="preview"
+        />
+    </div>
+    <form action="{% url 'logout' %}" method="post">
+        <input type="submit" value="Log out"><br><br>    
+    </form>
+
+
+</div>
+</body>
+</html>
+
+<script>
+    document.getElementById('picture').addEventListener('change', async function(e) {
+        let file = this.files[0];
+        console.log(file);
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!allowedTypes.includes(file.type)) {
+            showMessage('Supported formats: JPG, JPEG, PNG', 'error');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showMessage('File size exceeds 5MB limit', 'error');
+            return;
+        }
+
+        const prev = document.getElementById('preview');
+        prev.src = URL.createObjectURL(file);
+        prev.classList.remove('hidden');
+
+        
+        // Create FormData and upload
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        try {
+            const response = await fetch('/upload_photo/', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'  // Include session cookies
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                showMessage(error.error || 'Upload failed', 'error');
+                return;
+            }
+
+            const data = await response.json();
+            console.log(data);
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            showMessage('Upload failed: ' + error.message, 'error');
+        }
+    });
+</script>
