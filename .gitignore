@@ -11,3 +11,50 @@ firebase-adminsdk*.json
 
 node_modules/
 __pycache__/
+
+#Frontend
+
+# Miscellaneous
+frontend/*.class
+frontend/*.log
+frontend/*.pyc
+frontend/*.swp
+frontend/.DS_Store
+frontend/.atom/
+frontend/.build/
+frontend/.buildlog/
+frontend/.history
+frontend/.svn/
+frontend/.swiftpm/
+frontend/migrate_working_dir/
+
+# IntelliJ related
+frontend/*.iml
+frontend/*.ipr
+frontend/*.iws
+frontend/.idea/
+
+# VS Code (uncomment if you want to ignore)
+# frontend/.vscode/
+
+# Flutter/Dart/Pub related
+frontend/**/doc/api/
+frontend/**/ios/Flutter/.last_build_id
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.pub-cache/
+frontend/.pub/
+frontend/build/
+frontend/coverage/
+
+# Symbolication related
+frontend/app.*.symbols
+
+# Obfuscation related
+frontend/app.*.map.json
+
+# Android Studio build artifacts
+frontend/android/app/debug/
+frontend/android/app/profile/
+frontend/android/app/release/
