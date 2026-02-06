@@ -155,3 +155,4 @@ FIREBASE_CONFIG = {
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "") #<-- Add your geminizzzz API here
 
+CORS_ALLOW_CREDENTIALS = True
