@@ -42,25 +42,28 @@ def _get_firebase():
     return _auth, _database
 
 
-def home(request):
-    return render(request, "home.html")
+# def home(request):
+#     return render(request, "home.html")
 
 
-def signIn(request):
-    return render(request, "login.html", {
-        "firebase_config": settings.FIREBASE_CONFIG
-    })
+# def signIn(request):
+#     return render(request, "login.html", {
+#         "firebase_config": settings.FIREBASE_CONFIG
+#     })
 
 @csrf_exempt
 def postsignIn(request):
-    email = request.POST.get('email', '').strip()
-    password = request.POST.get('password', '').strip()
+    if request.method != 'POST':
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+    
+    data = json.loads(request.body)
+    email = data.get('email', '').strip()
+    password = data.get('password', '').strip()
 
     logger.info('postsignIn called with email: %s', email)
 
     if not email or not password:
-        return render(request, "login.html", {"message": "Email and password are required."})
-
+        return JsonResponse({"error": "Email and password are error"}, status=400)
     auth, db = _get_firebase()
 
     try:
@@ -79,12 +82,10 @@ def postsignIn(request):
         request.session['email'] = email
         request.session['idToken'] = idToken
 
-        return redirect("home")
+        return JsonResponse({"success": True, "uid": uid})
 
     except Exception:
-        return render(request, "login.html", {
-            "message": "Invalid credentials — please check your email and password."
-        })
+        return JsonResponse({"success": False, "error": "Invalid credentials"}, status=401)
 
 @csrf_exempt
 def google_login(request):
@@ -125,53 +126,55 @@ def google_login(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
 
-@csrf_exempt
-def logout(request):
-    request.session.flush()
-    return redirect("/")
+# @csrf_exempt
+# def logout(request):
+#     request.session.flush()
+#     return redirect("/")
 
-def signUp(request):
-    return render(request, "registration.html")
+# def signUp(request):
+#     return render(request, "registration.html")
 
 @csrf_exempt
 def postsignUp(request):
-    logger.info('postsignUp called; POST keys: %s', list(request.POST.keys()))
-    email = request.POST.get('email')
-    password = request.POST.get('pass')
-    pass_repeat = request.POST.get('pass-repeat')
-    name = request.POST.get('name')
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Invalid request"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        email = data.get("email", "").strip()
+        password = data.get("password", "")
+        pass_repeat = data.get("password_repeat", "")
+        name = data.get("name", "").strip()
+    except Exception:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
 
     if not email or not password:
-        return render(request, "registration.html", {"message": "Email and password are required."})
+        return JsonResponse({"success": False, "error": "Email and password are required"}, status=400)
 
     if password != pass_repeat:
-        return render(request, "registration.html", {"message": "Passwords do not match."})
+        return JsonResponse({"success": False,"error": "Passwords do not match"}, status=400)
 
     try:
         auth, db = _get_firebase()
-        # create user in firebase auth
+
         user = auth.create_user_with_email_and_password(email, password)
-        uid = user.get('localId')
-        idToken = user.get('idToken')
+        uid = user.get("localId")
+        idToken = user.get("idToken")
 
-        profile = {
-            "name": name,
-            "email": email,
-            "uid": uid,
-        }
+        #save profile in Realtime DB
+        profile = {"name": name,"email": email,"uid": uid}
 
-        db.child('users').child(uid).set(profile) #this is the directory where the profile is saved in the realtime db
-        
-        #important, session is used to know who is logged in
-        request.session['uid'] = uid
-        request.session['idToken'] = idToken
+        db.child("users").child(uid).set(profile)
 
-        return render(request, "login.html", {"message": "Account created successfully. Please log in."})
+        request.session.flush()
+        request.session["uid"] = uid
+        request.session["idToken"] = idToken
+        request.session["email"] = email
 
-    except Exception as exc:
-        logger.exception("Error during Firebase signup")
-        err_msg = str(exc)
-        return render(request, "registration.html", {"message": f"Registration error: {err_msg}"})
+        return JsonResponse({"success": True, "message": "Account created successfully"})
+
+    except Exception as e:
+        return JsonResponse({"success": False,"error": "Account creation failed"}, status=400)
     
 @csrf_exempt
 def upload_photo(request):
