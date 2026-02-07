@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "327181082964",
+    "firebase_url": "https://rural-8c3b7-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "rural-8c3b7",
+    "storage_bucket": "rural-8c3b7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:327181082964:android:4c200ee2996a3e80e5a8c1",
+        "android_client_info": {
+          "package_name": "com.example.frontend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "327181082964-jgfh2sp2v26lpbs92859ac86nmvgms4i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAW5OWnrOd0mhEFPaW1kBsYqW8p5cdkE1M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "327181082964-jgfh2sp2v26lpbs92859ac86nmvgms4i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

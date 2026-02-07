@@ -1,12 +1,10 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/src/features/auth/data/auth_repository.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
-import 'package:google_sign_in_web/google_sign_in_web.dart' as web;
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -22,54 +20,48 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  StreamSubscription<GoogleSignInAuthenticationEvent>? _authSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _authSubscription = GoogleSignIn.instance.authenticationEvents.listen((
-      event,
-    ) async {
-      if (event is GoogleSignInAuthenticationEventSignIn) {
-        final user = event.user;
-
-        setState(() => _isLoading = true);
-
-        final auth = user.authentication;
-        final String? idToken = auth.idToken;
-
-        if (idToken != null) {
-          final authRepository = ref.read(authRepositoryProvider);
-          final result = await authRepository.signInWithGoogle(idToken);
-
-          if (mounted && result['success'] == true) {
-            context.go('/home');
-          }
-        }
-        setState(() => _isLoading = false);
-      }
-    });
-  }
-
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _authSubscription?.cancel();
     super.dispose();
   }
 
-  Widget buildGoogleWebButton() {
-    return (GoogleSignInPlatform.instance as web.GoogleSignInPlugin)
-        .renderButton(
-          configuration: web.GSIButtonConfiguration(
-            type: web.GSIButtonType.standard,
-            theme: web.GSIButtonTheme.outline,
-            size: web.GSIButtonSize.large,
-            shape: web.GSIButtonShape.pill,
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // firebase handles google popup completely
+      final googleProvider = GoogleAuthProvider();
+
+      final userCredential = await FirebaseAuth.instance.signInWithPopup(
+        googleProvider,
+      );
+
+      // get firebase id token
+      final firebaseIdToken = await userCredential.user!.getIdToken();
+
+      // send token to backend
+      final authRepository = ref.read(authRepositoryProvider);
+      final result = await authRepository.signInWithGoogle(firebaseIdToken!);
+
+      if (mounted && result['success'] == true) {
+        context.go('/home');
+      }
+    } catch (e) {
+      debugPrint('Google sign-in failed: $e');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google sign-in failed'),
+            backgroundColor: Colors.red,
           ),
         );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _signIn() async {
@@ -241,7 +233,19 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  Center(child: buildGoogleWebButton()),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _signInWithGoogle,
+                      icon: const Icon(Icons.login),
+                      label: const Text('Sign in with Google'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
 
                   Row(

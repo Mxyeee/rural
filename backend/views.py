@@ -220,7 +220,7 @@ def upload_photo(request):
             photo.read(),
             content_type=photo.content_type
         )
-
+        blob.make_public()
         photo_url = blob.public_url
 
         ref.child(uid).child("photos").set({

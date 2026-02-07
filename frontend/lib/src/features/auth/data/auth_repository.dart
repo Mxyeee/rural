@@ -95,6 +95,7 @@ class AuthRepository {
 
         _currentUserId = data['uid'];
         _currentUserEmail = data['email'];
+        _idToken = idToken;
 
         return {'success': true, 'uid': data['uid'], 'email': data['email']};
       } else {
