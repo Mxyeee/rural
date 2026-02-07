@@ -15,7 +15,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  final _passwordRepeatController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -25,7 +25,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _passwordRepeatController.dispose();
     super.dispose();
   }
 
@@ -39,6 +39,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
       password: _passwordController.text,
+      passwordRepeat: _passwordRepeatController.text,
     );
 
     setState(() => _isLoading = false);
@@ -196,7 +197,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
                   // Confirm Password Field
                   TextFormField(
-                    controller: _confirmPasswordController,
+                    controller: _passwordRepeatController,
                     obscureText: _obscureConfirmPassword,
                     decoration: InputDecoration(
                       labelText: 'Confirm Password',

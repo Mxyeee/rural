@@ -82,7 +82,7 @@ def postsignIn(request):
         request.session['email'] = email
         request.session['idToken'] = idToken
 
-        return JsonResponse({"success": True, "uid": uid})
+        return JsonResponse({"success": True, "uid": uid, "email": email, "idToken": idToken})
 
     except Exception:
         return JsonResponse({"success": False, "error": "Invalid credentials"}, status=401)
@@ -146,7 +146,7 @@ def postsignUp(request):
         pass_repeat = data.get("password_repeat", "")
         name = data.get("name", "").strip()
     except Exception:
-        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400) 
 
     if not email or not password:
         return JsonResponse({"success": False, "error": "Email and password are required"}, status=400)
@@ -183,6 +183,22 @@ def upload_photo(request):
 
     uid = request.session.get('uid')
     logger.info('User %s sig test', uid)
+
+    if not uid:
+        auth_header = request.headers.get('Authorization', '')
+        logger.info(f"Authorization header: {auth_header}")
+        
+        # get idtoken from Bearer since flutter and django different domain/ports so session wont work
+        if auth_header.startswith('Bearer '):
+            id_token = auth_header.split('Bearer ')[1]
+            try:
+                from firebase_admin import auth as admin_auth
+                decoded_token = admin_auth.verify_id_token(id_token)
+                uid = decoded_token['uid']
+                logger.info(f"Token verified, UID from token: {uid}")
+            except Exception as e:
+                logger.error(f"Token verification failed: {e}")
+                return JsonResponse({'error': 'Invalid token'}, status=401)
 
     logger.info(f"upload_photo called by user: {uid}")
     if not uid:

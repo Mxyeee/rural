@@ -50,9 +50,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'backend.middleware.CrossOriginOpenerPolicyMiddleware', #FUCK FYCK FYCK KNN THIS FUCKING LINE, DEBUG FOR 2H JUST CAUSE OF THIS, THANK YOU REDDIT GODS
@@ -156,3 +158,5 @@ FIREBASE_CONFIG = {
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "") #<-- Add your geminizzzz API here
 
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_ALL_ORIGINS = True

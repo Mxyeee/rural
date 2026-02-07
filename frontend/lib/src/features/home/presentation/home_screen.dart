@@ -37,8 +37,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       setState(() => _isUploading = true);
 
+      final bytes = await image.readAsBytes();
+      final fileName = image.name;
+
       final authRepository = ref.read(authRepositoryProvider);
-      final result = await authRepository.uploadPhoto(image.path);
+      final result = await authRepository.uploadPhoto(bytes, fileName);
 
       setState(() => _isUploading = false);
 

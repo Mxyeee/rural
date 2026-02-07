@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/src/config/backend_config.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +13,7 @@ class AuthRepository {
 
   String? _currentUserId;
   String? _currentUserEmail;
+  String? _idToken;
   bool get isAuthenticated => _currentUserId != null;
 
   AuthRepository({required this.baseUrl, http.Client? httpClient})
@@ -25,7 +27,7 @@ class AuthRepository {
       final response = await _httpClient.post(
         Uri.parse('$baseUrl/postsignIn/'),
         headers: {'Content-Type': 'application/json'},
-        body: {'email': email, 'password': password},
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       if (response.statusCode == 200) {
@@ -33,6 +35,7 @@ class AuthRepository {
 
         _currentUserId = data['uid'];
         _currentUserEmail = data['email'];
+        _idToken = data['idToken'];
 
         return {'success': true, 'uid': data['uid'], 'email': data['email']};
       } else {
@@ -47,17 +50,18 @@ class AuthRepository {
     required String name,
     required String email,
     required String password,
+    required String passwordRepeat,
   }) async {
     try {
       final response = await _httpClient.post(
         Uri.parse('$baseUrl/postsignUp/'),
         headers: {'Content-Type': 'application/json'},
-        body: {
+        body: jsonEncode({
           'name': name,
           'email': email,
-          'pass': password,
-          'pass-repeat': password,
-        },
+          'password': password,
+          'password_repeat': passwordRepeat,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -117,14 +121,21 @@ class AuthRepository {
     }
   }
 
-  Future<Map<String, dynamic>> uploadPhoto(String filePath) async {
+  Future<Map<String, dynamic>> uploadPhoto(
+    Uint8List fileBytes,
+    String fileName,
+  ) async {
     try {
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/upload_photo/'),
       );
-      request.headers['Authorization'] = _currentUserId!;
-      request.files.add(await http.MultipartFile.fromPath('photo', filePath));
+      if (_idToken != null) {
+        request.headers['Authorization'] = 'Bearer $_idToken';
+      }
+      request.files.add(
+        http.MultipartFile.fromBytes('photo', fileBytes, filename: fileName),
+      );
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
