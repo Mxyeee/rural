@@ -31,4 +31,9 @@ TO EXECUTE THE CODE AND VIEW THE SITE:
 1. ensure the above .env file setup is completed first (create a new file named .env and insert the FIREBASE_SERVICE_ACCOUNT into it)
 2. in terminal run -> pip install -r requirements.txt
 3. in terminal run -> python manage.py runserver 
+4. Make sure flutter is downloaded, and create ANOTHER .env file in the /frontend directory, then paste this below:
+  GOOGLE_WEB_CLIENT_ID = ''
+5. go to Google Cloud Consol -> go to rural project -> -> go to api and services -> go to credentials -> copy OAuth Client 2.0 IDs client ID
+6. Paste the client id into the '' in your /frontend/.env
+7. run the frontend UI
 
