@@ -33,3 +33,9 @@ TO EXECUTE THE CODE AND VIEW THE SITE:
 3. in terminal run -> python manage.py runserver 
 4. Make sure flutter is downloaded, and run the app on google chrome browser using command: `flutter run -d chrome --web-port 5000`
 
+
+
+TO EXECUTE THE TEST OF GEMINI MODEL: 
+1. create a .env file in the rural directory, put your own gemini api key GEMINI_API_KEY
+2. run python -m backend.test_listing 
+3. if you want to test your own audio or images, upload them into rural\example, then adjust the audio_path and image_path in test_listing.py
