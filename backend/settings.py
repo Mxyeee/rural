@@ -155,7 +155,7 @@ FIREBASE_CONFIG = {
 
 
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "") #<-- Add your geminizzzz API here
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") #placed in .env
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
