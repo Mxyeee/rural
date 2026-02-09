@@ -1,16 +1,10 @@
-import requests
-import os
 import logging
 from django.conf import settings
 import logging 
 from google import genai
 from google.genai import types
 import json
-import re
 from backend.schemas import ListingSchema
-
-
-# genai.configure(api_key = settings.GEMINI_API_KEY)
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +48,6 @@ async def generate_homestay_listing(uid,voice_file,images):
                 )
             )
                 
-
         #prepare voice files
         voice_data = voice_file.read()
         content.append(
@@ -74,13 +67,6 @@ async def generate_homestay_listing(uid,voice_file,images):
             return {"error":"Failed to generate listing"}
         
         logger.info(f"Generated listing for user {uid}")
-        # print("Response from model:",response.text)
-
-        # #have to clean the text, sometimes output generated has ```json backticks in markdown format
-        # try:
-        #     text = response.text.strip()
-        #     if text.startswith("```"):
-
 
         listing = json.loads(response.text)
         validated_listing = ListingSchema(**listing) 
