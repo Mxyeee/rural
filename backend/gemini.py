@@ -5,6 +5,7 @@ from google import genai
 from google.genai import types
 import json
 from backend.schemas import ListingSchema
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -33,27 +34,27 @@ Tone: Ensure tone is always professional yet warm and welcoming
 Output Format: Return ONLY a raw JSON object. Do not include markdown formatting like ```json
 """
 
-
-async def generate_homestay_listing(uid,voice_file,images):
+async def generate_homestay_listing(uid,voice_url,image_url):
     try:
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
         content = [system_prompt]
         #prepare image 
-        for image in images:
-            image_data = image.read()
+        for image in image_url:
+            response = requests.get(image)
+            image_data = response.content
             content.append(
                 types.Part.from_bytes(
                     data=image_data,
-                    mime_type=image.content_type or "image/jpeg"
+                    mime_type="image/jpeg"
                 )
-            )
-                
+            )   
         #prepare voice files
-        voice_data = voice_file.read()
+        voice_response = requests.get(voice_url)
+        voice_data = voice_response.data
         content.append(
             types.Part.from_bytes(
                 data=voice_data,
-                mime_type=voice_file.content_type or "audio/mpeg"
+                mime_type="audio/mpeg"
             )
         )
         
