@@ -13,7 +13,9 @@ from django.contrib.auth.models import User
 import json
 from firebase_admin import auth
 from .firebase import firebase_admin  # make sure this initializes Firebase
-
+from firebase_admin import auth as admin_auth
+from backend.gemini import generate_homestay_listing
+import asyncio
 
 #this is the brain of the backend where log in, logout, signup, photo upload this that all sort of logic lives
 
@@ -176,62 +178,127 @@ def postsignUp(request):
     except Exception as e:
         return JsonResponse({"success": False,"error": "Account creation failed"}, status=400)
     
-@csrf_exempt
-def upload_photo(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-    uid = request.session.get('uid')
-    logger.info('User %s sig test', uid)
-
-    if not uid:
-        auth_header = request.headers.get('Authorization', '')
-        logger.info(f"Authorization header: {auth_header}")
-        
-        # get idtoken from Bearer since flutter and django different domain/ports so session wont work
-        if auth_header.startswith('Bearer '):
-            id_token = auth_header.split('Bearer ')[1]
-            try:
-                from firebase_admin import auth as admin_auth
-                decoded_token = admin_auth.verify_id_token(id_token)
-                uid = decoded_token['uid']
-                logger.info(f"Token verified, UID from token: {uid}")
-            except Exception as e:
-                logger.error(f"Token verification failed: {e}")
-                return JsonResponse({'error': 'Invalid token'}, status=401)
-
+def upload_photo(request,uid):
     logger.info(f"upload_photo called by user: {uid}")
     if not uid:
         return JsonResponse({'error': 'User not authenticated'}, status=401)
 
     try:
-        if 'photo' not in request.FILES:
-            return JsonResponse({'error': 'No file uploaded'}, status=400)
+        if not request.FILES.getlist('photo'):
+            return JsonResponse({'error': 'No images uploaded'}, status=400)
 
-        photo = request.FILES['photo']
+        photo = request.FILES.getlist('photo')
 
         if photo.size > 5 * 1024 * 1024:
             return JsonResponse({'error': 'File size exceeds 5MB limit'}, status=400)
+        
+        photo_url = []
 
-        file_extension = os.path.splitext(photo.name)[1]
+        for idx,photo in enumerate(photo):
+            file_extension = os.path.splitext(photo.name)[1]
 
-        blob = bucket.blob(f"photos/{uid}/{file_extension}")
-        blob.upload_from_string(
-            photo.read(),
-            content_type=photo.content_type
-        )
-        blob.make_public()
-        photo_url = blob.public_url
+            photo_blob = bucket.blob(f"listings/{uid}/images/{int(time.time())}{file_extension}")
+            photo_blob.upload_from_string(
+                photo.read(),
+                content_type=photo.content_type
+            )
+            photo_blob.make_public()
+            photo_url.append(photo_blob.public_url)
+            logger.info(f"Image {idx} uploaded to {photo_blob.public_url}")
 
-        ref.child(uid).child("photos").set({
-            "url": photo_url,
-            "type": file_extension.replace(".", ""),
-            "uploaded_at": int(time.time())
-        })
-
-        return JsonResponse({'saved done': photo_url}, status=200)
-
+            return {'success':True,'photo_url':photo_url}
 
     except Exception as e:
         logger.exception(f"Error uploading photo for user {uid}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return {'error': str(e), 'photo_url': None}
+
+
+def upload_voice(request,uid):
+    logger.info(f"upload_photo called by user: {uid}")
+
+    try:
+        if 'voice' not in request.FILES:
+            return JsonResponse({'error': 'No file uploaded'}, status=400)
+
+        voice_file = request.FILES['voice']
+
+        voice_extension = os.path.splitext(voice_file.name)[1]
+
+        voice_blob = bucket.blob(f"listings/{uid}/voice/{int(time.time())}{voice_extension}")
+        voice_blob.upload_from_string(
+            voice_file.read(),
+            content_type=voice_file.content_type
+        )
+        voice_blob.make_public()
+        voice_url = voice_blob.public_url
+        logger.info(f"Voice uploaded to: {voice_url}")
+
+        return {'success':True,'voice_url':voice_url}
+
+    except Exception as e:
+        logger.exception(f"Error uploading voice file for user {uid}")
+        return {'error': str(e), 'voice_url': None}
+
+
+@csrf_exempt
+def generate_listing(request):
+    if request.method != "POST":
+        return JsonResponse({'error': "Invalid Request "}, status=500)
+    
+    uid = request.session.get('uid')
+
+    if not uid:
+        auth_header = request.header.get('Authorization','')
+        if auth_header.startswith('Bearer '):
+            id_token = auth_header.split('Bearer ')[1]
+            try:
+                decoded_token = admin_auth.verify_id_token(id_token)
+                uid = decoded_token['uid']
+            except Exception as e:
+                logger.error(f"Verification failed",e)
+                return JsonResponse({f"Error Invalid Token"}, status=401)
+            
+
+    try:
+        photo_result = upload_photo(request,uid)
+        if 'error' in photo_result and not photo_result.get('photo_url'):
+            return JsonResponse({'error': photo_result['error']}, status=400)
+        
+        photo_urls = photo_result.get('photo_url',[])
+
+
+        voice_result = upload_voice(request,uid)
+        if 'error' in voice_result and not voice_result.get('voice_url'):
+            return JsonResponse({'error': voice_result['error']}, status=400)
+        voice_urls = voice_result.get('voice_url')
+
+        listing_data = asyncio.run(
+            generate_homestay_listing(
+                uid=uid,
+                voice_file=voice_urls,
+                images=photo_urls
+            )
+        )
+
+        ref = db.reference()
+        listing_ref = ref.child(uid).child("listings").push(listing_data)
+        listing_id = listing_ref.key()
+        
+        listing_data['listing_id'] = listing_id
+        listing_data['created_at'] = int(time.time())
+        listing_data['voice_url'] = voice_urls
+        listing_data['image_urls'] = photo_urls
+
+        ref.child(uid).child("listings").child(listing_id).update(listing_data)
+
+        return JsonResponse({
+            'success': True,
+            'listing_id': listing_id,
+            'listing': listing_data
+        }, status=201)
+
+
+    except Exception as e:
+        logger.exception(f"Error generating listing for {uid}")
+        return JsonResponse({'Error': str(e)},status=500)
+

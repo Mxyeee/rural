@@ -37,5 +37,5 @@ TO EXECUTE THE CODE AND VIEW THE SITE:
 
 TO EXECUTE THE TEST OF GEMINI MODEL: 
 1. create a .env file in the rural directory, put your own gemini api key GEMINI_API_KEY
-2. run python -m backend.test_listing 
-3. if you want to test your own audio or images, upload them into rural\example, then adjust the audio_path and image_path in test_listing.py
+2. run python -m backend.test_listing while in the rural directory 
+3. if you want to test your own audio or images, upload them into rural\example, then adjust the audio_path and image_path in test_listing.py 

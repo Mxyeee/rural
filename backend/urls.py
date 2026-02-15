@@ -9,9 +9,9 @@ urlpatterns = [
     path('postsignIn/', views.postsignIn, name='postsignIn'),
     path('postsignUp/', views.postsignUp, name='postsignUp'),
     path("google-login/", views.google_login, name="google_login"),
-    path('upload_photo/', views.upload_photo, name='upload_photo'),
-
-
+    path('upload_photo/', views.upload_photo, name='upload_photo'),  # ADD THIS
+    path('upload_voice/', views.upload_voice, name='upload_voice'),  # ADD THIS
+    path('generate_listing/', views.generate_listing, name='generate_listing'),
 ]
 
 
