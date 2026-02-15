@@ -57,7 +57,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'backend.middleware.CrossOriginOpenerPolicyMiddleware', #FUCK FYCK FYCK KNN THIS FUCKING LINE, DEBUG FOR 2H JUST CAUSE OF THIS, THANK YOU REDDIT GODS
+    'backend.middleware.CrossOriginOpenerPolicyMiddleware', #THANK YOU REDDIT GODS
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -167,3 +167,5 @@ CORS_ALLOW_HEADERS = [
     "content-type",
     "authorization",
 ]
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
