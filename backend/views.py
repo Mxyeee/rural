@@ -178,8 +178,7 @@ def postsignUp(request):
     except Exception as e:
         return JsonResponse({"success": False,"error": "Account creation failed"}, status=400)
     
-def _upload_photo(request,uid):
-
+def upload_photo(request,uid):
     logger.info(f"upload_photo called by user: {uid}")
     if not uid:
         return JsonResponse({'error': 'User not authenticated'}, status=401)
@@ -214,7 +213,7 @@ def _upload_photo(request,uid):
         return {'error': str(e), 'photo_url': None}
 
 
-def _upload_voice(request,uid):
+def upload_voice(request,uid):
     logger.info(f"upload_photo called by user: {uid}")
 
     try:
@@ -261,14 +260,14 @@ def generate_listing(request):
             
 
     try:
-        photo_result = _upload_photo(request,uid)
+        photo_result = upload_photo(request,uid)
         if 'error' in photo_result and not photo_result.get('photo_url'):
             return JsonResponse({'error': photo_result['error']}, status=400)
         
         photo_urls = photo_result.get('photo_url',[])
 
 
-        voice_result = _upload_voice(request,uid)
+        voice_result = upload_voice(request,uid)
         if 'error' in voice_result and not voice_result.get('voice_url'):
             return JsonResponse({'error': voice_result['error']}, status=400)
         voice_urls = voice_result.get('voice_url')
