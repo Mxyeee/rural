@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/src/constant.dart';
+import 'package:frontend/src/features/auth/data/auth_repository.dart';
 import 'package:frontend/src/features/listing/data/listing_repository.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -55,6 +57,14 @@ class _GenerateListingScreenState extends ConsumerState<GenerateListingScreen> {
     } catch (e) {
       setState(() => _isUploadingPhoto = false);
       _showSnack('Error: ${e.toString()}', Colors.red);
+    }
+  }
+
+  Future<void> _signOut() async {
+    final authRepository = ref.read(authRepositoryProvider);
+    await authRepository.signOut();
+    if (mounted) {
+      context.go('/signIn');
     }
   }
 
@@ -132,7 +142,7 @@ class _GenerateListingScreenState extends ConsumerState<GenerateListingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(),
+      appBar: customAppBar(_signOut),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -317,7 +327,7 @@ class _GenerateListingScreenState extends ConsumerState<GenerateListingScreen> {
   }
 }
 
-AppBar customAppBar() {
+AppBar customAppBar(Function signOut) {
   const kGreenDark = Color(0xFF267A54);
 
   return AppBar(
@@ -360,7 +370,7 @@ AppBar customAppBar() {
       ),
       IconButton(
         icon: const Icon(Icons.logout),
-        onPressed: () {},
+        onPressed: () => signOut(),
         tooltip: 'Sign Out',
       ),
     ],

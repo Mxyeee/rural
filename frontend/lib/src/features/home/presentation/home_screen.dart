@@ -214,7 +214,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () => context.go('/generateListing'),
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).colorScheme.secondary,
           disabledBackgroundColor: const Color(0xFFf97316).withOpacity(0.5),
