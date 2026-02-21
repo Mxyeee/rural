@@ -176,14 +176,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             style: TextStyle(
                               fontSize: 36,
                               color: Colors.white,
-                              fontWeight: FontWeight.w300,
+                              fontWeight: FontWeight.w600,
                               letterSpacing: 1,
                             ),
                           ),
                           const SizedBox(height: 8),
                           const Text(
                             'Generating Homestay Listings Made Easy',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w300,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ],
