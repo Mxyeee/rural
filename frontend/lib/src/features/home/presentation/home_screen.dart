@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/src/constant.dart';
 import 'package:frontend/src/features/auth/data/auth_repository.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,67 +13,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  String? _uploadedPhotoUrl;
-  bool _isUploading = false;
-  final ImagePicker _picker = ImagePicker();
-
   Future<void> _signOut() async {
     final authRepository = ref.read(authRepositoryProvider);
     await authRepository.signOut();
     if (mounted) {
       context.go('/signIn');
-    }
-  }
-
-  Future<void> _pickAndUploadPhoto() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1920,
-        imageQuality: 85,
-      );
-
-      if (image == null) return;
-
-      setState(() => _isUploading = true);
-
-      final bytes = await image.readAsBytes();
-      final fileName = image.name;
-
-      final authRepository = ref.read(authRepositoryProvider);
-      final result = await authRepository.uploadPhoto(bytes, fileName);
-
-      setState(() => _isUploading = false);
-
-      if (mounted) {
-        if (result['success'] == true) {
-          setState(() => _uploadedPhotoUrl = result['url']);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Photo uploaded successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['error'] ?? 'Upload failed'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      setState(() => _isUploading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
@@ -83,23 +28,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final userId = authRepository.userId;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _signOut,
-            tooltip: 'Sign Out',
-          ),
-        ],
-      ),
+      appBar: customAppBar(_signOut),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // User Info Card
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -148,85 +83,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-
-              ElevatedButton.icon(
-                onPressed: _isUploading ? null : _pickAndUploadPhoto,
-                icon: _isUploading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : const Icon(Icons.upload_file),
-                label: Text(
-                  _isUploading ? 'Uploading...' : 'Pick & Upload Photo',
-                ),
+              ElevatedButton(
+                onPressed: () {
+                  context.go('/generateListing');
+                },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
 
-              if (_uploadedPhotoUrl != null) ...[
-                Text(
-                  'Uploaded Photo:',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
-                        child: Image.network(
-                          _uploadedPhotoUrl!,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 200,
-                              color: Colors.grey[300],
-                              child: const Center(
-                                child: Icon(
-                                  Icons.error_outline,
-                                  size: 48,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'URL: $_uploadedPhotoUrl',
-                          style: Theme.of(context).textTheme.bodySmall,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                child: Text('Create Listing'),
+              ),
+
+              SizedBox(height: 20),
 
               const Spacer(),
 
@@ -270,4 +141,70 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+}
+
+AppBar customAppBar(Future<void> Function() signOut) {
+  const kGreenDark = Color(0xFF267A54);
+
+  return AppBar(
+    backgroundColor: kGreen,
+    centerTitle: false,
+    toolbarHeight: 70,
+    title: const Text(
+      'RumahGen',
+      style: TextStyle(fontSize: 28, color: Colors.white, letterSpacing: 0.53),
+    ),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+    ),
+    leading: Padding(
+      padding: const EdgeInsets.only(left: 24),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: kGreenDark.withOpacity(0.45),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(Icons.house_rounded),
+      ),
+    ),
+    actions: [
+      Container(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.language_rounded, color: kWhite, size: 16),
+            SizedBox(width: 4),
+            Text(
+              'EN',
+              style: TextStyle(
+                color: kWhite,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+      IconButton(
+        icon: const Icon(Icons.logout),
+        onPressed: signOut,
+        tooltip: 'Sign Out',
+      ),
+    ],
+    bottom: PreferredSize(
+      preferredSize: const Size.fromHeight(70.0),
+      child: Container(
+        padding: const EdgeInsets.only(bottom: 20, left: 24, right: 24),
+        child: Row(
+          children: [
+            Text(
+              'Welcome Back!',
+              style: TextStyle(fontSize: 24, color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

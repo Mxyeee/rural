@@ -3,6 +3,7 @@ import 'package:frontend/src/features/auth/data/auth_repository.dart';
 import 'package:frontend/src/features/auth/presentation/sign_in_screen.dart';
 import 'package:frontend/src/features/auth/presentation/sign_up_screen.dart';
 import 'package:frontend/src/features/home/presentation/home_screen.dart';
+import 'package:frontend/src/features/listing/presentation/generate_listing_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -42,6 +43,10 @@ GoRouter goRouter(Ref ref) {
         builder: (context, state) => const SignUpScreen(),
       ),
       GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(
+        path: '/generateListing',
+        builder: (context, state) => const GenerateListingScreen(),
+      ),
     ],
 
     errorBuilder: (context, state) => const SignInScreen(),
