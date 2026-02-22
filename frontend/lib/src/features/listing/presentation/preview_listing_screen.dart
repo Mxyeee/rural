@@ -555,7 +555,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => context.go('/airbnb'),
+              onPressed: () => context.go('/airbnbProfile'),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Color(0xFFFF5A5F), width: 2),
                 padding: const EdgeInsets.symmetric(vertical: 20),

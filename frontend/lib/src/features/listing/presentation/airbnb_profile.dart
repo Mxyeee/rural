@@ -22,13 +22,17 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
   static const _businessCategory = 'Vacation Home Rental';
 
   static const _steps = [
-    'Open Google Business Profile website',
-    "Click 'Start now'",
-    'Copy and paste the business name below',
-    'Copy and paste the description',
-    'Select category: Vacation Home Rental',
-    'Add your address and phone number',
-    'Upload photos from your listing',
+    'Open the Airbnb website (airbnb.com)',
+    "Click 'Airbnb your home' or 'Become a Host'",
+    'Create an Airbnb account or sign in',
+    'Choose your property type (e.g. Entire home)',
+    'Copy and paste your listing title below',
+    'Copy and paste your description below',
+    'Add your address and exact location on the map',
+    'Set your amenities (which you selected in your listing) and house rules',
+    'Upload at least 5 photos of your homestay',
+    'Set your nightly price and availability',
+    'Review and publish your listing',
   ];
 
   void _copyToClipboard(String field, String text) {
@@ -124,7 +128,7 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Google Business Profile',
+                  'Airbnb',
                   style: TextStyle(
                     fontSize: 21,
                     color: Colors.white,
@@ -133,7 +137,7 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Get found on Google Maps',
+                  'Get more bookings via Airbnb',
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.white70,
@@ -167,7 +171,7 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Why Google Business Profile?',
+              'Why Airbnb?',
               style: TextStyle(
                 fontSize: 21,
                 fontWeight: FontWeight.w600,
@@ -176,7 +180,7 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
             ),
             SizedBox(height: 10),
             Text(
-              "Help guests find your homestay on Google Search and Google Maps. It's free and easy!",
+              "Help guests find your homestay on an app with millions of users like Airbnb. It's free and easy!",
               style: TextStyle(
                 fontSize: 16,
                 color: Color.fromARGB(255, 78, 78, 84),
@@ -205,7 +209,7 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
         ),
         const SizedBox(height: 14),
         const Text(
-          'Business Name',
+          'Listing Title',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -229,7 +233,7 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
         _buildDescriptionCopyCard(),
         const SizedBox(height: 12),
         const Text(
-          'Category',
+          'Amenities',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -238,12 +242,51 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
         ),
         const SizedBox(height: 4),
         // Category
-        _buildCopyRow(
-          value: _businessCategory,
-          field: 'category',
-          multiLine: false,
-        ),
+        _buildAmenityGrid(),
       ],
+    );
+  }
+
+  Widget _buildAmenityGrid() {
+    const amenities = [
+      ('🛜', 'WiFi'),
+      ('❄️', 'Air Conditioner'),
+      ('🚗', 'Free Parking'),
+      ('🍳', 'Kitchen'),
+      ('🏖️', 'Beach Access'),
+      ('🏊', 'Pool'),
+    ];
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: amenities
+          .map(
+            (a) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE5E7EB), width: 2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(a.$1, style: const TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  Text(
+                    a.$2,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Color(0xFF374151),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -482,15 +525,13 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
         children: [
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: OutlinedButton(
               onPressed: () {
-                html.window.open(
-                  "https://business.google.com/en-all/business-profile/",
-                  "_blank",
-                );
+                html.window.open("https://www.airbnb.com/host/homes", "_blank");
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFf97316),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFFF5A5F), width: 2),
+                backgroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 30),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -502,15 +543,15 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
                 children: [
                   Icon(
                     Icons.open_in_new_rounded,
-                    color: Colors.white,
+                    color: Color(0xFFFF5A5F),
                     size: 25,
                   ),
                   SizedBox(width: 8),
                   Text(
-                    'Open Google Business',
+                    'Open Airbnb',
                     style: TextStyle(
                       fontSize: 24,
-                      color: Colors.white,
+                      color: Color(0xFFFF5A5F),
                       fontWeight: FontWeight.w400,
                     ),
                   ),
