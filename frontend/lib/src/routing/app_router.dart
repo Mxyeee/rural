@@ -3,7 +3,9 @@ import 'package:frontend/src/features/auth/data/auth_repository.dart';
 import 'package:frontend/src/features/auth/presentation/sign_in_screen.dart';
 import 'package:frontend/src/features/auth/presentation/sign_up_screen.dart';
 import 'package:frontend/src/features/home/presentation/home_screen.dart';
+import 'package:frontend/src/features/listing/presentation/airbnb_profile.dart';
 import 'package:frontend/src/features/listing/presentation/generate_listing_screen.dart';
+import 'package:frontend/src/features/listing/presentation/google_business_profile.dart';
 import 'package:frontend/src/features/listing/presentation/loading_screen.dart';
 import 'package:frontend/src/features/listing/presentation/preview_listing_screen.dart';
 import 'package:go_router/go_router.dart';
@@ -69,6 +71,14 @@ GoRouter goRouter(Ref ref) {
             prefillAmenities: extra?['amenities'],
           );
         },
+      ),
+      GoRoute(
+        path: '/googleBusiness',
+        builder: (context, state) => const GoogleBusinessScreen(),
+      ),
+      GoRoute(
+        path: '/airbnbProfile',
+        builder: (context, state) => const AirbnbProfileScreen(),
       ),
     ],
 

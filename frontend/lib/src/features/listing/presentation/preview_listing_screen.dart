@@ -480,7 +480,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
             Text(
               amenity.label,
               style: const TextStyle(
-                fontSize: 15,
+                fontSize: 18,
                 color: Color(0xFF374151),
                 fontWeight: FontWeight.w500,
               ),
@@ -542,7 +542,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
                   Text(
                     'Set up your profile',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 15,
                       color: Colors.white70,
                       fontWeight: FontWeight.w400,
                     ),
@@ -579,7 +579,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
                   Text(
                     'Publish your listing',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 15,
                       color: Color(0xFF9CA3AF),
                       fontWeight: FontWeight.w400,
                     ),
