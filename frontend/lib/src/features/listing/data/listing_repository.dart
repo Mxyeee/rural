@@ -145,9 +145,8 @@ class ListingRepository {
       return {'success': false, 'error': e.toString()};
     }
   }
-}
 
-Future<Map<String, dynamic>> getUserPhotos() async {
+  Future<Map<String, dynamic>> getUserPhotos() async {
   try {
     final uid = _authRepository.userId;
     print('Current UID: $uid');
@@ -178,6 +177,7 @@ Future<Map<String, dynamic>> getUserPhotos() async {
       'success': false,
       'error': e.toString(),
     };
+  }
   }
 }
 
