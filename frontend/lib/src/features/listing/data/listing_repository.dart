@@ -60,6 +60,7 @@ class ListingRepository {
     }
   }
 
+
   Future<Map<String, dynamic>> uploadVoice({
     required XFile voiceFile,
   }) async {
@@ -143,6 +144,40 @@ class ListingRepository {
     } catch (e) {
       return {'success': false, 'error': e.toString()};
     }
+  }
+}
+
+Future<Map<String, dynamic>> getUserPhotos() async {
+  try {
+    final uid = _authRepository.userId;
+    print('Current UID: $uid');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/get_user_photos/'),
+      body: {
+        'uid': uid ?? '',
+      },
+    );
+
+    final data = jsonDecode(response.body);
+
+    if ((response.statusCode == 200 || response.statusCode == 201) &&
+        data['success'] == true) {
+      return {
+        'success': true,
+        'photoUrls': List<String>.from(data['photo_urls'] ?? []),
+      };
+    } else {
+      return {
+        'success': false,
+        'error': data['error'] ?? 'Failed to fetch photos',
+      };
+    }
+  } catch (e) {
+    return {
+      'success': false,
+      'error': e.toString(),
+    };
   }
 }
 

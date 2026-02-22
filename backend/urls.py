@@ -12,6 +12,7 @@ urlpatterns = [
     path('upload_photo/', views.upload_photo, name='upload_photo'),  # ADD THIS
     path('upload_voice/', views.upload_voice, name='upload_voice'),  # ADD THIS
     path('generate_listing/', views.generate_listing, name='generate_listing'),
+    path('get_user_photos/', views.get_user_photos, name='get_user_photos'),
 ]
 
 

@@ -7,4 +7,5 @@ class BackendConfig {
   static const String logoutEndpoint = '/logout/';
   static const String uploadPhotoEndpoint = '/upload_photo/';
   static const String homeEndpoint = '/home/';
+  static const String retrivePhoto = '/get_user_photos/';
 }

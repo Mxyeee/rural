@@ -304,4 +304,30 @@ def generate_listing(request):
     except Exception as e:
         logger.exception(f"Error generating listing for {uid}")
         return JsonResponse({'Error': str(e)},status=500)
+    
 
+@csrf_exempt
+def get_user_photos(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    try:
+        uid = request.POST.get("uid")
+        if not uid:
+            return JsonResponse({"error": "UID is required"}, status=400)
+
+        prefix = f"listings/{uid}/images/"
+        blobs = bucket.list_blobs(prefix=prefix)
+
+        photo_urls = [blob.public_url for blob in blobs]
+
+        return JsonResponse({
+            "success": True,
+            "photo_urls": photo_urls
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)
