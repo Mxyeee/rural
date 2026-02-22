@@ -4,6 +4,7 @@ import 'package:frontend/src/features/auth/presentation/sign_in_screen.dart';
 import 'package:frontend/src/features/auth/presentation/sign_up_screen.dart';
 import 'package:frontend/src/features/home/presentation/home_screen.dart';
 import 'package:frontend/src/features/listing/presentation/generate_listing_screen.dart';
+import 'package:frontend/src/features/listing/presentation/loading_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -18,16 +19,16 @@ GoRouter goRouter(Ref ref) {
 
     redirect: (context, state) {
       final isLoggedIn = authRepository.isAuthenticated;
-      final isSignInRoute = state.uri.path == '/signIn';
-      final isSignUpRoute = state.uri.path == '/signUp';
-      final isHomeRoute = state.uri.path == '/home';
 
-      if (isLoggedIn && (isSignInRoute || isSignUpRoute)) {
-        return '/home';
+      final publicRoutes = ['/signIn', '/signUp'];
+      final isPublic = publicRoutes.contains(state.uri.path);
+
+      if (!isLoggedIn && !isPublic) {
+        return '/signIn';
       }
 
-      if (!isLoggedIn && isHomeRoute) {
-        return '/signIn';
+      if (isLoggedIn && isPublic) {
+        return '/home';
       }
 
       return null;
@@ -46,6 +47,10 @@ GoRouter goRouter(Ref ref) {
       GoRoute(
         path: '/generateListing',
         builder: (context, state) => const GenerateListingScreen(),
+      ),
+      GoRoute(
+        path: '/loading',
+        builder: (context, state) => const LoadingScreen(),
       ),
     ],
 

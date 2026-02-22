@@ -60,9 +60,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _signOut() async {
     final authRepository = ref.read(authRepositoryProvider);
     await authRepository.signOut();
-    if (mounted) {
-      context.go('/signIn');
-    }
   }
 
   @override
@@ -214,7 +211,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: () => context.go('/generateListing'),
+        onPressed: () => context.go('/loading'),
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).colorScheme.secondary,
           disabledBackgroundColor: const Color(0xFFf97316).withOpacity(0.5),
@@ -236,10 +233,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
-  // -------------------------------------------------------------------------
-  // Listings section
-  // -------------------------------------------------------------------------
 
   Widget _buildListingsSection() {
     return Column(
