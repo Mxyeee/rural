@@ -167,5 +167,3 @@ CORS_ALLOW_HEADERS = [
     "content-type",
     "authorization",
 ]
-
-SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'

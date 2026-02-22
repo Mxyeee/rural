@@ -177,42 +177,45 @@ def postsignUp(request):
 
     except Exception as e:
         return JsonResponse({"success": False,"error": "Account creation failed"}, status=400)
-    
-def upload_photo(request,uid):
-    logger.info(f"upload_photo called by user: {uid}")
-    if not uid:
-        return JsonResponse({'error': 'User not authenticated'}, status=401)
 
+@csrf_exempt
+def upload_photo(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
     try:
-        if not request.FILES.getlist('photo'):
+        uid = request.POST.get("uid")
+        if not uid:
+            return JsonResponse({"error": "UID is required"}, status=400)
+        logger.info(f"Received upload_photo request from UID: {uid}")
+
+        photos = request.FILES.getlist('photo')
+        if not photos:
             return JsonResponse({'error': 'No images uploaded'}, status=400)
 
-        photo = request.FILES.getlist('photo')
+        photo_urls = []
 
-        if photo.size > 5 * 1024 * 1024:
-            return JsonResponse({'error': 'File size exceeds 5MB limit'}, status=400)
-        
-        photo_url = []
+        for idx, photo in enumerate(photos):
+            if photo.size > 5 * 1024 * 1024:
+                return JsonResponse({'error': f'File {photo.name} exceeds 5MB limit'}, status=400)
 
-        for idx,photo in enumerate(photo):
             file_extension = os.path.splitext(photo.name)[1]
 
-            photo_blob = bucket.blob(f"listings/{uid}/images/{int(time.time())}{file_extension}")
+            photo_blob = bucket.blob(f"listings/{uid}/images/{int(time.time())}_{idx}{file_extension}")
             photo_blob.upload_from_string(
                 photo.read(),
                 content_type=photo.content_type
             )
             photo_blob.make_public()
-            photo_url.append(photo_blob.public_url)
-            logger.info(f"Image {idx} uploaded to {photo_blob.public_url}")
+            photo_urls.append(photo_blob.public_url)
+            logger.info(f"Uploaded image {idx} to {photo_blob.public_url}")
 
-            return {'success':True,'photo_url':photo_url}
+        return JsonResponse({'success': True, 'photo_url': photo_urls})
 
     except Exception as e:
         logger.exception(f"Error uploading photo for user {uid}")
-        return {'error': str(e), 'photo_url': None}
+        return JsonResponse({'success': False, 'error': str(e), 'photo_url': None}, status=500)
 
-
+@csrf_exempt
 def upload_voice(request,uid):
     logger.info(f"upload_photo called by user: {uid}")
 

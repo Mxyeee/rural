@@ -21,10 +21,16 @@ class ListingRepository {
     required List<XFile> photos,
   }) async {
     try {
+      // get UID from _authRepository
+      final uid = _authRepository.userId;
+      print('Current UID: $uid'); 
+
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/upload_photo/'),
       );
+
+      if (uid != null) request.fields['uid'] = uid;
 
       for (final photo in photos) {
         final bytes = await photo.readAsBytes();
@@ -33,10 +39,12 @@ class ListingRepository {
         );
       }
 
-      final response = await http.Response.fromStream(await request.send());
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && data['success'] == true) {
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          data['success'] == true) {
         return {
           'success': true,
           'photoUrls': List<String>.from(data['photo_url'] ?? []),
@@ -52,13 +60,20 @@ class ListingRepository {
     }
   }
 
-  Future<Map<String, dynamic>> uploadVoice({required XFile voiceFile}) async {
+  Future<Map<String, dynamic>> uploadVoice({
+    required XFile voiceFile,
+  }) async {
     try {
-      final bytes = await voiceFile.readAsBytes();
+      final uid = _authRepository.userId;
+
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/upload_voice/'),
       );
+
+      if (uid != null) request.fields['uid'] = uid;
+
+      final bytes = await voiceFile.readAsBytes();
       request.files.add(
         http.MultipartFile.fromBytes('voice', bytes, filename: voiceFile.name),
       );
@@ -84,10 +99,14 @@ class ListingRepository {
     required XFile voiceFile,
   }) async {
     try {
+      final uid = _authRepository.userId;
+
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/generate_listing/'),
       );
+
+      if (uid != null) request.fields['uid'] = uid;
 
       for (final photo in photos) {
         final bytes = await photo.readAsBytes();

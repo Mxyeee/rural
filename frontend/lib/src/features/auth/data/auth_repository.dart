@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:html'; 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/src/config/backend_config.dart';
 import 'package:http/http.dart' as http;
@@ -18,7 +19,11 @@ class AuthRepository {
   String? get userEmail => _currentUserEmail;
   String? get idToken => _idToken;
 
-  AuthRepository({required this.baseUrl});
+  AuthRepository({required this.baseUrl}) {
+    _currentUserId = window.localStorage['uid'];
+    _currentUserEmail = window.localStorage['email'];
+    _idToken = window.localStorage['idToken'];
+  }
 
   Future<Map<String, dynamic>> signIn({
     required String email,
@@ -33,10 +38,16 @@ class AuthRepository {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+
         _currentUserId = data['uid'];
         _currentUserEmail = data['email'];
         _idToken = data['idToken'];
-        return {'success': true, 'uid': data['uid'], 'email': data['email']};
+
+        window.localStorage['uid'] = _currentUserId!;
+        window.localStorage['email'] = _currentUserEmail!;
+        window.localStorage['idToken'] = _idToken!;
+
+        return {'success': true, 'uid': _currentUserId, 'email': _currentUserEmail};
       } else {
         return {'success': false, 'error': 'Invalid credentials'};
       }
@@ -94,6 +105,11 @@ class AuthRepository {
         _currentUserId = data['uid'];
         _currentUserEmail = data['email'];
         _idToken = idToken;
+
+        window.localStorage['uid'] = _currentUserId!;
+        window.localStorage['email'] = _currentUserEmail!;
+        window.localStorage['idToken'] = _idToken!;
+
         return {'success': true, 'uid': data['uid'], 'email': data['email']};
       } else {
         return {'success': false, 'error': 'Google login failed'};
@@ -115,6 +131,10 @@ class AuthRepository {
       _currentUserId = null;
       _currentUserEmail = null;
       _idToken = null;
+
+      window.localStorage.remove('uid');
+      window.localStorage.remove('email');
+      window.localStorage.remove('idToken');
     }
   }
 }
