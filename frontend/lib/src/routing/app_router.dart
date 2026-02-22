@@ -5,6 +5,7 @@ import 'package:frontend/src/features/auth/presentation/sign_up_screen.dart';
 import 'package:frontend/src/features/home/presentation/home_screen.dart';
 import 'package:frontend/src/features/listing/presentation/generate_listing_screen.dart';
 import 'package:frontend/src/features/listing/presentation/loading_screen.dart';
+import 'package:frontend/src/features/listing/presentation/preview_listing_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -51,6 +52,23 @@ GoRouter goRouter(Ref ref) {
       GoRoute(
         path: '/loading',
         builder: (context, state) => const LoadingScreen(),
+      ),
+      GoRoute(
+        path: '/previewListing/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return PreviewListingScreen(id: id);
+        },
+      ),
+      GoRoute(
+        path: '/previewListing',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return PreviewListingScreen(
+            prefillDescription: extra?['description'],
+            prefillAmenities: extra?['amenities'],
+          );
+        },
       ),
     ],
 

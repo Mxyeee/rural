@@ -26,34 +26,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=400&q=80',
     ),
     Listing(
-      id: '1',
+      id: '3',
       name: 'Rural Paradise Homestay',
       thumbnail:
           'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=400&q=80',
     ),
     Listing(
-      id: '2',
+      id: '4',
       name: 'Countryside Retreat',
       thumbnail:
           'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=400&q=80',
-    ),
-    Listing(
-      id: '1',
-      name: 'Rural Paradise Homestay',
-      thumbnail:
-          'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=400&q=80',
-    ),
-    Listing(
-      id: '2',
-      name: 'Countryside Retreat',
-      thumbnail:
-          'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=400&q=80',
-    ),
-    Listing(
-      id: '1',
-      name: 'Rural Paradise Homestay',
-      thumbnail:
-          'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=400&q=80',
     ),
   ];
 
@@ -390,23 +372,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
 
                   const SizedBox(height: 10),
-                  // Action buttons
-                  Row(
-                    children: [
-                      _actionButton(
-                        label: 'View',
-                        icon: Icons.visibility_outlined,
-                        onTap: () => context.go('/preview/${listing.id}'),
-                        filled: false,
-                      ),
-                      const SizedBox(width: 8),
-                      _actionButton(
-                        label: 'Edit',
-                        icon: Icons.edit_outlined,
-                        onTap: () => context.go('/create/${listing.id}'),
-                        filled: true,
-                      ),
-                    ],
+
+                  _actionButton(
+                    label: 'View',
+                    icon: Icons.visibility_outlined,
+                    onTap: () => context.go('/previewListing/${listing.id}'),
+                    filled: false,
                   ),
                 ],
               ),
