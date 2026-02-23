@@ -8,15 +8,15 @@ import 'package:go_router/go_router.dart';
 // });
 
 class PreviewListingScreen extends StatefulWidget {
-  final String? id; // present when viewing saved listing
-  final String? prefillDescription; // present when coming from Gemini
-  final List<Amenity>? prefillAmenities;
+  final String? id;
+  final String? prefillTitle;
+  final String? prefillDescription;
 
   const PreviewListingScreen({
     super.key,
     this.id,
+    this.prefillTitle,
     this.prefillDescription,
-    this.prefillAmenities,
   });
 
   @override
@@ -61,7 +61,6 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
     if (widget.prefillDescription != null) {
       // Coming from Gemini — use the pre-filled data directly
       _descriptionController.text = widget.prefillDescription!;
-      _selectedAmenities = widget.prefillAmenities ?? [];
     } else {
       //_fetchListing(widget.id!);  BACKEND will implement
     }

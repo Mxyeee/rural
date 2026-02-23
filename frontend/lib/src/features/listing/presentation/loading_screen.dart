@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class LoadingScreen extends StatefulWidget {
-  const LoadingScreen({super.key});
+  final Future<Map<String, dynamic>> generationFuture;
+
+  const LoadingScreen({super.key, required this.generationFuture});
 
   @override
   State<LoadingScreen> createState() => _LoadingScreenState();
@@ -21,18 +23,45 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void initState() {
     super.initState();
-    _runSteps();
+    _run();
   }
 
-  Future<void> _runSteps() async {
+  Future<void> _run() async {
+    final results = await Future.wait([
+      _runAnimation(),
+      widget.generationFuture,
+    ]);
+
+    if (!mounted) return;
+
+    final apiResult = results[1] as Map<String, dynamic>;
+
+    if (apiResult['success'] == true) {
+      context.go(
+        '/previewListing',
+        extra: {
+          'title': apiResult['listing']?['title'],
+          'description': apiResult['listing']?['description'],
+        },
+      );
+    } else {
+      final error = apiResult['error'] ?? 'Generation failed';
+      context.go('/generateListing');
+      await Future.delayed(const Duration(milliseconds: 150));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _runAnimation() async {
     for (int i = 1; i < _steps.length; i++) {
       await Future.delayed(const Duration(milliseconds: 1500));
       if (!mounted) return;
       setState(() => _currentStep = i);
     }
-    await Future.delayed(const Duration(seconds: 1));
-    if (!mounted) return;
-    context.go('/preview');
+    await Future.delayed(const Duration(milliseconds: 800));
   }
 
   @override
@@ -45,7 +74,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
               children: [
-                Spacer(flex: 3),
+                const Spacer(flex: 3),
+
                 Container(
                   width: 130,
                   height: 130,
@@ -71,7 +101,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
                 const SizedBox(height: 32),
 
-                // Title
                 const Text(
                   'Creating Magic',
                   style: TextStyle(
@@ -83,7 +112,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
                 const SizedBox(height: 48),
 
-                // Steps
                 Column(
                   children: List.generate(_steps.length, (idx) {
                     final step = _steps[idx];
@@ -106,12 +134,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
                               : const Color.fromARGB(87, 227, 227, 227),
                         ),
                         padding: EdgeInsets.symmetric(
-                          vertical: isActive ? 36 : 23, // smaller when inactive
+                          vertical: isActive ? 36 : 23,
                           horizontal: 25,
                         ),
                         child: Row(
                           children: [
-                            // Step icon / check
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
                               width: 60,
@@ -151,7 +178,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
                             const SizedBox(width: 16),
 
-                            // Label
                             Expanded(
                               child: Text(
                                 step.label,
@@ -174,7 +200,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
                               ),
                             ),
 
-                            // Active spinner
                             if (isActive)
                               SizedBox(
                                 width: 45,
@@ -191,7 +216,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     );
                   }),
                 ),
-                Spacer(flex: 2),
+
+                const Spacer(flex: 2),
+
                 const Text(
                   'Please wait...',
                   style: TextStyle(
@@ -200,7 +227,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                Spacer(flex: 3),
+
+                const Spacer(flex: 3),
               ],
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:frontend/src/features/auth/data/auth_repository.dart';
 import 'package:frontend/src/features/auth/presentation/sign_in_screen.dart';
 import 'package:frontend/src/features/auth/presentation/sign_up_screen.dart';
 import 'package:frontend/src/features/home/presentation/home_screen.dart';
+import 'package:frontend/src/features/listing/domain/amenity_model.dart';
 import 'package:frontend/src/features/listing/presentation/airbnb_profile.dart';
 import 'package:frontend/src/features/listing/presentation/generate_listing_screen.dart';
 import 'package:frontend/src/features/listing/presentation/google_business_profile.dart';
@@ -22,18 +23,11 @@ GoRouter goRouter(Ref ref) {
 
     redirect: (context, state) {
       final isLoggedIn = authRepository.isAuthenticated;
-
       final publicRoutes = ['/signIn', '/signUp'];
       final isPublic = publicRoutes.contains(state.uri.path);
 
-      if (!isLoggedIn && !isPublic) {
-        return '/signIn';
-      }
-
-      if (isLoggedIn && isPublic) {
-        return '/home';
-      }
-
+      if (!isLoggedIn && !isPublic) return '/signIn';
+      if (isLoggedIn && isPublic) return '/home';
       return null;
     },
 
@@ -53,13 +47,9 @@ GoRouter goRouter(Ref ref) {
       ),
       GoRoute(
         path: '/loading',
-        builder: (context, state) => const LoadingScreen(),
-      ),
-      GoRoute(
-        path: '/previewListing/:id',
         builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return PreviewListingScreen(id: id);
+          final future = state.extra as Future<Map<String, dynamic>>;
+          return LoadingScreen(generationFuture: future);
         },
       ),
       GoRoute(
@@ -67,11 +57,21 @@ GoRouter goRouter(Ref ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return PreviewListingScreen(
-            prefillDescription: extra?['description'],
-            prefillAmenities: extra?['amenities'],
+            prefillTitle: extra?['title'] as String?,
+            prefillDescription: extra?['description'] as String?,
           );
         },
       ),
+
+      // (B) Viewing an existing saved listing by its backend ID
+      GoRoute(
+        path: '/previewListing/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return PreviewListingScreen(id: id);
+        },
+      ),
+
       GoRoute(
         path: '/googleBusiness',
         builder: (context, state) => const GoogleBusinessScreen(),
