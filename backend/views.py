@@ -16,6 +16,7 @@ from .firebase import firebase_admin  # make sure this initializes Firebase
 from firebase_admin import auth as admin_auth
 from backend.gemini import generate_homestay_listing
 import asyncio
+from firebase_admin import db as admin_db
 
 #this is the brain of the backend where log in, logout, signup, photo upload this that all sort of logic lives
 
@@ -178,126 +179,125 @@ def postsignUp(request):
     except Exception as e:
         return JsonResponse({"success": False,"error": "Account creation failed"}, status=400)
 
+#helper function for photo upload
+def handle_photo_upload(uid,photos):
+    photo_urls = []
+
+    for idx, photo in enumerate(photos):
+        if photo.size > 5 * 1024 * 1024:
+            return JsonResponse({'error': f'File {photo.name} exceeds 5MB limit'}, status=400)
+
+        file_extension = os.path.splitext(photo.name)[1]
+
+        photo_blob = bucket.blob(f"listings/{uid}/images/{int(time.time())}_{idx}{file_extension}")
+        photo_blob.upload_from_string(
+            photo.read(),
+            content_type=photo.content_type
+        )
+        photo_blob.make_public()
+        photo_urls.append(photo_blob.public_url)
+        logger.info(f"Uploaded image {idx} to {photo_blob.public_url}")
+
+    return photo_urls
+
+
+def handle_upload_voice(uid,voice_file):
+    voice_extension = os.path.splitext(voice_file.name)[1]
+    voice_blob = bucket.blob(f"listings/{uid}/voice/{int(time.time())}{voice_extension}")
+    voice_blob.upload_from_string(
+        voice_file.read(),
+        content_type=voice_file.content_type
+    )
+    voice_blob.make_public()
+    voice_url = voice_blob.public_url
+    return voice_url
+
+
 @csrf_exempt
 def upload_photo(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
     try:
         uid = request.POST.get("uid")
-        if not uid:
-            return JsonResponse({"error": "UID is required"}, status=400)
-        logger.info(f"Received upload_photo request from UID: {uid}")
-
         photos = request.FILES.getlist('photo')
-        if not photos:
-            return JsonResponse({'error': 'No images uploaded'}, status=400)
-
-        photo_urls = []
-
-        for idx, photo in enumerate(photos):
-            if photo.size > 5 * 1024 * 1024:
-                return JsonResponse({'error': f'File {photo.name} exceeds 5MB limit'}, status=400)
-
-            file_extension = os.path.splitext(photo.name)[1]
-
-            photo_blob = bucket.blob(f"listings/{uid}/images/{int(time.time())}_{idx}{file_extension}")
-            photo_blob.upload_from_string(
-                photo.read(),
-                content_type=photo.content_type
-            )
-            photo_blob.make_public()
-            photo_urls.append(photo_blob.public_url)
-            logger.info(f"Uploaded image {idx} to {photo_blob.public_url}")
-
-        return JsonResponse({'success': True, 'photo_url': photo_urls})
-
+        urls = handle_photo_upload(uid,photos)
+        return JsonResponse({"success":True,"photo_url":urls})
     except Exception as e:
-        logger.exception(f"Error uploading photo for user {uid}")
-        return JsonResponse({'success': False, 'error': str(e), 'photo_url': None}, status=500)
-
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
 @csrf_exempt
-def upload_voice(request,uid):
-    logger.info(f"upload_photo called by user: {uid}")
-
+def upload_voice(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+    
     try:
-        if 'voice' not in request.FILES:
-            return JsonResponse({'error': 'No file uploaded'}, status=400)
-
-        voice_file = request.FILES['voice']
-
-        voice_extension = os.path.splitext(voice_file.name)[1]
-
-        voice_blob = bucket.blob(f"listings/{uid}/voice/{int(time.time())}{voice_extension}")
-        voice_blob.upload_from_string(
-            voice_file.read(),
-            content_type=voice_file.content_type
-        )
-        voice_blob.make_public()
-        voice_url = voice_blob.public_url
-        logger.info(f"Voice uploaded to: {voice_url}")
-
-        return {'success':True,'voice_url':voice_url}
-
+        uid = request.POST.get("uid")
+        voice_file = request.FILES.get('voice')
+        url = handle_upload_voice(uid,voice_file)
+        return JsonResponse({"success":True,"photo_url":url})
     except Exception as e:
-        logger.exception(f"Error uploading voice file for user {uid}")
-        return {'error': str(e), 'voice_url': None}
-
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @csrf_exempt
 def generate_listing(request):
     if request.method != "POST":
         return JsonResponse({'error': "Invalid Request "}, status=500)
     
-    uid = request.session.get('uid')
+    # uid = request.session.get('uid')
+    auth_header = request.headers.get('Authorization','')
+    uid = None
 
-    if not uid:
-        auth_header = request.header.get('Authorization','')
-        if auth_header.startswith('Bearer '):
-            id_token = auth_header.split('Bearer ')[1]
-            try:
-                decoded_token = admin_auth.verify_id_token(id_token)
-                uid = decoded_token['uid']
-            except Exception as e:
-                logger.error(f"Verification failed",e)
-                return JsonResponse({f"Error Invalid Token"}, status=401)
-            
-
-    try:
-        photo_result = upload_photo(request,uid)
-        if 'error' in photo_result and not photo_result.get('photo_url'):
-            return JsonResponse({'error': photo_result['error']}, status=400)
+    if auth_header.startswith('Bearer '):
+        id_token = auth_header.split('Bearer ')[1]
+        try:
+            decoded_token = admin_auth.verify_id_token(id_token)
+            uid = decoded_token['uid']
+        except Exception as e:
+            logger.error(f"Verification failed",e)
+            return JsonResponse({"error":"Invalid Token"}, status=401)
         
-        photo_urls = photo_result.get('photo_url',[])
+    if not uid: 
+        return JsonResponse({"error":"Authentication required, UID missing"},status=401)
+            
+    try:
+        photos = request.FILES.getlist('photo')
+        voice_file = request.FILES.get('voice')
+        
+        if not photos or not voice_file:
+            return JsonResponse({'error': 'Both photos and voice recording are required'}, status=400)
 
-
-        voice_result = upload_voice(request,uid)
-        if 'error' in voice_result and not voice_result.get('voice_url'):
-            return JsonResponse({'error': voice_result['error']}, status=400)
-        voice_urls = voice_result.get('voice_url')
+        photo_urls = handle_photo_upload(uid, photos)
+        voice_urls = handle_upload_voice(uid,voice_file)
 
         listing_data = asyncio.run(
             generate_homestay_listing(
                 uid=uid,
-                voice_file=voice_urls,
-                images=photo_urls
+                voice_url=voice_urls,
+                image_url=photo_urls
             )
         )
 
-        ref = db.reference()
-        listing_ref = ref.child(uid).child("listings").push(listing_data)
-        listing_id = listing_ref.key()
-        
-        listing_data['listing_id'] = listing_id
-        listing_data['created_at'] = int(time.time())
-        listing_data['voice_url'] = voice_urls
-        listing_data['image_urls'] = photo_urls
+        ref = admin_db.reference(f"users/{uid}/listings")
+        listing_ref = ref.push(listing_data)
+        listing_id = listing_ref.key
 
-        ref.child(uid).child("listings").child(listing_id).update(listing_data)
+
+        
+        final_data = {
+            **listing_data,
+            'listing_id':listing_id,
+            'created_at':int(time.time()),
+            'voice_url': voice_urls,
+            'photo_urls': photo_urls
+        }
+        
+        admin_db.reference(f"users/{uid}/listings/{listing_id}").set(final_data)
 
         return JsonResponse({
             'success': True,
             'listing_id': listing_id,
-            'listing': listing_data
+            'listing': listing_data,
+            'photo_urls':photo_urls
         }, status=201)
 
 
