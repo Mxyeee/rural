@@ -59,6 +59,7 @@ GoRouter goRouter(Ref ref) {
           return PreviewListingScreen(
             prefillTitle: extra?['title'] as String?,
             prefillDescription: extra?['description'] as String?,
+            photoUrls: extra?['photoUrls'] as List<String>?,
           );
         },
       ),

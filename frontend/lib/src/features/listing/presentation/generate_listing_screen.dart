@@ -115,11 +115,10 @@ class _GenerateListingScreenState extends ConsumerState<GenerateListingScreen> {
       return;
     }
 
-    // Fire the API call WITHOUT awaiting it — we hand the Future to LoadingScreen
     final future = ref
         .read(listingRepositoryProvider)
         .generateListing(photos: _photos, voiceFile: _voiceFile!);
-
+    
     // Navigate immediately to LoadingScreen, passing the live future
     context.go('/loading', extra: future);
   }

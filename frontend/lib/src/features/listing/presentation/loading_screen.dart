@@ -42,6 +42,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         extra: {
           'title': apiResult['listing']?['title'],
           'description': apiResult['listing']?['description'],
+          'photoUrls': apiResult['photoUrls'],
         },
       );
     } else {

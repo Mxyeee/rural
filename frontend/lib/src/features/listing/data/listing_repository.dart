@@ -101,11 +101,16 @@ class ListingRepository {
   }) async {
     try {
       final uid = _authRepository.userId;
+      final token = _authRepository.idToken;
 
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/generate_listing/'),
       );
+
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token' ;
+      }
 
       if (uid != null) request.fields['uid'] = uid;
 
@@ -129,10 +134,15 @@ class ListingRepository {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 201 && data['success'] == true) {
+        final photoUrls = List<String>.from(data['photo_urls'] ?? []);
+  
+
+              
         return {
           'success': true,
           'listingId': data['listing_id'],
           'listing': data['listing'],
+          'photoUrls': photoUrls
         };
       } else {
         return {
@@ -149,7 +159,6 @@ class ListingRepository {
   Future<Map<String, dynamic>> getUserPhotos() async {
   try {
     final uid = _authRepository.userId;
-    print('Current UID: $uid');
 
     final response = await http.post(
       Uri.parse('$baseUrl/get_user_photos/'),

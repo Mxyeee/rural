@@ -11,12 +11,14 @@ class PreviewListingScreen extends StatefulWidget {
   final String? id;
   final String? prefillTitle;
   final String? prefillDescription;
+  final List<String>? photoUrls;
 
   const PreviewListingScreen({
     super.key,
     this.id,
     this.prefillTitle,
     this.prefillDescription,
+    this.photoUrls,
   });
 
   @override
@@ -39,14 +41,16 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
   final TextEditingController _customAmenityController =
       TextEditingController();
 
-  final List<String> _sampleImages = const [
-    'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=800&q=80',
-    'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=800&q=80',
-    'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=800&q=80',
-    'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=800&q=80',
-    'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=800&q=80',
-    'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=800&q=80',
-  ];
+  // final List<String> _sampleImages = const [
+  //   'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=800&q=80',
+  //   'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=800&q=80',
+  //   'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=800&q=80',
+  //   'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=800&q=80',
+  //   'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=800&q=80',
+  //   'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=800&q=80',
+  // ];
+
+  List<String> _displayImages = [];
 
   List<Amenity> _selectedAmenities = [
     kPredefinedAmenities[0], // WiFi
@@ -58,11 +62,20 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
   @override
   void initState() {
     super.initState();
+
     if (widget.prefillDescription != null) {
       // Coming from Gemini — use the pre-filled data directly
       _descriptionController.text = widget.prefillDescription!;
     } else {
       //_fetchListing(widget.id!);  BACKEND will implement
+    }
+
+    if (widget.photoUrls != null && widget.photoUrls!.isNotEmpty) {
+      _displayImages = widget.photoUrls!; 
+    } else {
+      _displayImages = [
+          'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=800&q=80',
+      ];
     }
   }
 
@@ -190,7 +203,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
         fit: StackFit.expand,
         children: [
           Image.network(
-            _sampleImages[_currentImageIndex],
+            _displayImages[_currentImageIndex],
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => Container(
               color: const Color(0xFFE5E7EB),
@@ -210,7 +223,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
               child: GestureDetector(
                 onTap: () => setState(() {
                   _currentImageIndex = _currentImageIndex == 0
-                      ? _sampleImages.length - 1
+                      ? _displayImages.length - 1
                       : _currentImageIndex - 1;
                 }),
                 child: Container(
@@ -236,7 +249,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
               child: GestureDetector(
                 onTap: () => setState(() {
                   _currentImageIndex =
-                      (_currentImageIndex + 1) % _sampleImages.length;
+                      (_currentImageIndex + 1) % _displayImages.length;
                 }),
                 child: Container(
                   padding: const EdgeInsets.all(10),
@@ -260,7 +273,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                _sampleImages.length,
+                _displayImages.length,
                 (idx) => AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   margin: const EdgeInsets.symmetric(horizontal: 3),
