@@ -50,7 +50,7 @@ async def generate_homestay_listing(uid,voice_url,image_url):
             )   
         #prepare voice files
         voice_response = requests.get(voice_url)
-        voice_data = voice_response.data
+        voice_data = voice_response.content
         content.append(
             types.Part.from_bytes(
                 data=voice_data,
