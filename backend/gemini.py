@@ -37,7 +37,7 @@ Output Format: Return ONLY a raw JSON object. Do not include markdown formatting
 async def generate_homestay_listing(uid,voice_url,image_url):
     try:
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        content = [system_prompt]
+        content = []
         #prepare image 
         for image in image_url:
             response = requests.get(image)
@@ -60,7 +60,11 @@ async def generate_homestay_listing(uid,voice_url,image_url):
         
         response = await client.aio.models.generate_content(
             model="gemini-2.5-flash",
-            contents=content
+            contents=content,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                response_mime_type="application/json", 
+    ),
             )
 
         if not response.text:
@@ -68,7 +72,7 @@ async def generate_homestay_listing(uid,voice_url,image_url):
             return {"error":"Failed to generate listing"}
         
         logger.info(f"Generated listing for user {uid}")
-
+        logger.info(f"RAW AI OUTPUT: {response.text}")
         listing = json.loads(response.text)
         validated_listing = ListingSchema(**listing) 
 

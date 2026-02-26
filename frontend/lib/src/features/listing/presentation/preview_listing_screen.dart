@@ -12,6 +12,7 @@ class PreviewListingScreen extends StatefulWidget {
   final String? prefillTitle;
   final String? prefillDescription;
   final List<String>? photoUrls;
+  final Map<String, dynamic>? listingData;
 
   const PreviewListingScreen({
     super.key,
@@ -19,6 +20,7 @@ class PreviewListingScreen extends StatefulWidget {
     this.prefillTitle,
     this.prefillDescription,
     this.photoUrls,
+    this.listingData,
   });
 
   @override
@@ -66,9 +68,15 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
     if (widget.prefillDescription != null) {
       // Coming from Gemini — use the pre-filled data directly
       _descriptionController.text = widget.prefillDescription!;
-    } else {
-      //_fetchListing(widget.id!);  BACKEND will implement
+    } 
+    
+    else if (widget.listingData != null && widget.listingData!['description'] != null) {
+    _descriptionController.text = widget.listingData!['description'];
     }
+  
+    else {
+        //_fetchListing(widget.id!);  BACKEND will implement
+      }
 
     if (widget.photoUrls != null && widget.photoUrls!.isNotEmpty) {
       _displayImages = widget.photoUrls!; 
@@ -519,6 +527,13 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
   // ── Bottom Button ────────────────────────────────────────────────────────────
 
   Widget _buildBottomButton() {
+
+    final Map<String,dynamic> updatedData = {
+      'title': widget.prefillTitle ?? '',
+      'description': _descriptionController.text,
+      'amenities': _selectedAmenities.map((a) => a.label).toList(),
+      'photoUrls': _displayImages,
+    };
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       decoration: const BoxDecoration(
@@ -530,7 +545,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => context.go('/googleBusiness'),
+              onPressed: () => context.go('/googleBusiness', extra: updatedData),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFf97316),
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -567,7 +582,7 @@ class _PreviewListingScreenState extends State<PreviewListingScreen> {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => context.go('/airbnbProfile'),
+              onPressed: () => context.go('/airbnbProfile',extra : updatedData),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Color(0xFFFF5A5F), width: 2),
                 padding: const EdgeInsets.symmetric(vertical: 20),

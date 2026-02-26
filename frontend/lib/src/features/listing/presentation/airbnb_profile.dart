@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AirbnbProfileScreen extends StatefulWidget {
-  const AirbnbProfileScreen({super.key});
+  final Map<String, dynamic> listingData;
+
+  const AirbnbProfileScreen({super.key, required this.listingData});
 
   @override
   State<AirbnbProfileScreen> createState() => _AirbnbProfileScreenState();
@@ -15,11 +17,10 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
   String? _copiedField;
   final Set<int> _completedSteps = {};
 
-  static const _businessName = 'Rural Paradise Homestay';
-  static const _businessDescription =
-      'Experience authentic rural living in this charming traditional homestay. '
-      'Nestled in the peaceful countryside with beautiful nature views.';
-  static const _businessCategory = 'Vacation Home Rental';
+  late final String _businessName = widget.listingData['title'] ?? 'New Listing';
+  late final String _businessDescription = widget.listingData['description'] ?? '';
+
+  late final List<String> _amenities = List<String>.from(widget.listingData['amenities'] ?? []);
 
   static const _steps = [
     'Open the Airbnb website (airbnb.com)',
@@ -248,47 +249,31 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
   }
 
   Widget _buildAmenityGrid() {
-    const amenities = [
-      ('🛜', 'WiFi'),
-      ('❄️', 'Air Conditioner'),
-      ('🚗', 'Free Parking'),
-      ('🍳', 'Kitchen'),
-      ('🏖️', 'Beach Access'),
-      ('🏊', 'Pool'),
-    ];
+    if (_amenities.isEmpty) return const Text("No amenities listed");
 
     return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: amenities
-          .map(
-            (a) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE5E7EB), width: 2),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(a.$1, style: const TextStyle(fontSize: 18)),
-                  const SizedBox(width: 8),
-                  Text(
-                    a.$2,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: Color(0xFF374151),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+        spacing: 10,
+        runSpacing: 10,
+        children: _amenities.map((amenity) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 2),
+            ),
+            child: Text(
+              amenity,
+              style: const TextStyle(
+                fontSize: 18,
+                color: Color(0xFF374151),
+                fontWeight: FontWeight.w500,
               ),
             ),
-          )
-          .toList(),
-    );
-  }
+          );
+        }).toList(),
+      );
+    }
 
   Widget _buildCopyRow({
     required String value,
@@ -367,7 +352,7 @@ class _AirbnbProfileScreenState extends State<AirbnbProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             _businessDescription,
             style: TextStyle(
               fontSize: 18,

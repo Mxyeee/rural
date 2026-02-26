@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class GoogleBusinessScreen extends StatefulWidget {
-  const GoogleBusinessScreen({super.key});
+  final Map<String, dynamic> listingData;
 
+  // 2. Add it to the constructor (required)
+  const GoogleBusinessScreen({super.key, required this.listingData});
   @override
   State<GoogleBusinessScreen> createState() => _GoogleBusinessScreenState();
 }
