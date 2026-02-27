@@ -331,3 +331,26 @@ def get_user_photos(request):
             "success": False,
             "error": str(e)
         }, status=500)
+    
+@csrf_exempt
+def get_user_listings(request):
+    auth_header = request.headers.get('Authorization', '')
+    uid = None
+
+    if auth_header.startswith('Bearer '):
+        id_token = auth_header.split('Bearer ')[1]
+        try:
+            decoded_token = admin_auth.verify_id_token(id_token)
+            uid = decoded_token['uid']
+        except Exception as e:
+            return JsonResponse({"error": "Invalid token"}, status=401)
+
+    if not uid:
+        return JsonResponse({"error": "Authentication required"}, status=401)
+
+    try:
+        ref = admin_db.reference(f"users/{uid}/listings")
+        listings = ref.get()
+        return JsonResponse({"success": True, "listings": listings or {}}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

@@ -5,6 +5,8 @@ import 'package:frontend/src/features/auth/data/auth_repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:frontend/src/features/home/domain/listing_model.dart';
+import 'dart:html';
 
 part 'listing_repository.g.dart';
 
@@ -188,6 +190,28 @@ class ListingRepository {
     };
   }
   }
+
+
+Future<List<Listing>> fetchListings() async {
+  final token = _authRepository.idToken; 
+  if (token == null || token.isEmpty) return [];
+
+  final response = await http.get(
+    Uri.parse('$baseUrl/listings/'), 
+    headers: {'Authorization': 'Bearer $token'},
+  );
+
+  final data = jsonDecode(response.body);
+  if (response.statusCode == 200 && data['success'] == true) {
+    final listingsMap = data['listings'] as Map<String, dynamic>? ?? {};
+    return listingsMap.entries.map((entry) {
+      final listingData = Map<String, dynamic>.from(entry.value);
+      listingData['id'] = entry.key;
+      return Listing.fromJson(listingData);
+    }).toList();
+  }
+  return [];
+}
 }
 
 @riverpod
@@ -197,3 +221,12 @@ ListingRepository listingRepository(Ref ref) {
     authRepository: ref.watch(authRepositoryProvider),
   );
 }
+
+final listingsProvider = FutureProvider<List<Listing>>((ref) async {
+  final repo = ref.watch(listingRepositoryProvider);
+  final token = ref.watch(authRepositoryProvider).idToken;
+
+  if (token == null) return [];
+
+  return repo.fetchListings();
+});

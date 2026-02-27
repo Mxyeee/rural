@@ -68,8 +68,15 @@ GoRouter goRouter(Ref ref) {
       GoRoute(
         path: '/previewListing/:id',
         builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return PreviewListingScreen(id: id);
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return PreviewListingScreen(
+            id: state.pathParameters['id'],
+            prefillTitle: extra['title'],
+            prefillDescription: extra['description'],
+            photoUrls: extra['photoUrls'] != null
+                ? List<String>.from(extra['photoUrls'])
+                : null,
+          );
         },
       ),
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/src/features/auth/data/auth_repository.dart';
 import 'package:frontend/src/features/home/domain/listing_model.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/src/features/listing/data/listing_repository.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -12,32 +13,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final List<Listing> _listings = const [
-    Listing(
-      id: '1',
-      name: 'Rural Paradise Homestay',
-      thumbnail:
-          'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=400&q=80',
-    ),
-    Listing(
-      id: '2',
-      name: 'Countryside Retreat',
-      thumbnail:
-          'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=400&q=80',
-    ),
-    Listing(
-      id: '3',
-      name: 'Rural Paradise Homestay',
-      thumbnail:
-          'https://images.unsplash.com/photo-1689420749580-f74353865d03?w=400&q=80',
-    ),
-    Listing(
-      id: '4',
-      name: 'Countryside Retreat',
-      thumbnail:
-          'https://images.unsplash.com/photo-1712330138676-60e86456c218?w=400&q=80',
-    ),
-  ];
+  
+
 
   Future<void> _signOut() async {
     final authRepository = ref.read(authRepositoryProvider);
@@ -66,7 +43,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     _buildCreateButton(),
                     const SizedBox(height: 28),
-                    _buildListingsSection(),
+                    _buildListingsSection(ref),
                     const SizedBox(height: 28),
                     _buildQuickTips(),
                     const SizedBox(height: 16),
@@ -219,55 +196,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildListingsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Text(
-              'Your Listings',
-              style: TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF0A0A0B),
-              ),
-            ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF059669),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${_listings.length}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+  Widget _buildListingsSection(WidgetRef ref) {
+    final token = ref.watch(authRepositoryProvider).idToken;
+
+    if (token == null) {
+      return const Center(child: Text('Not logged in'));
+    }
+
+  final listingsAsync = ref.watch(listingsProvider);
+
+  return listingsAsync.when(
+    loading: () => const Center(child: CircularProgressIndicator()),
+    error: (e, _) => Text("Error: $e"),
+    data: (listings) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Your Listings',
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0A0A0B),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        if (_listings.isEmpty)
-          _buildEmptyState()
-        else
-          Column(
-            children: _listings
-                .map(
-                  (listing) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: _buildListingCard(listing),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF059669),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${listings.length}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
                   ),
-                )
-                .toList(),
+                ),
+              ),
+            ],
           ),
-      ],
-    );
-  }
+          const SizedBox(height: 16),
+          if (listings.isEmpty)
+            _buildEmptyState()
+          else
+            Column(
+              children: listings
+                  .map((listing) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildListingCard(listing),
+                      ))
+                  .toList(),
+            ),
+        ],
+      );
+    },
+  );
+}
 
   Widget _buildEmptyState() {
     return Container(
@@ -316,77 +305,73 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildListingCard(Listing listing) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE5E7EB), width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Thumbnail
-          ClipRRect(
-            borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(18),
-            ),
-            child: Image.network(
-              listing.thumbnail,
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: const Color(0xFFE5E7EB), width: 2),
+      boxShadow: const [
+        BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+      ],
+    ),
+    child: Row(
+      children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.horizontal(left: Radius.circular(18)),
+          child: Image.network(
+            listing.thumbnail,
+            width: 110,
+            height: 110,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
               width: 110,
               height: 110,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 110,
-                height: 110,
-                color: const Color(0xFFE5E7EB),
-                child: const Icon(
-                  Icons.image_not_supported_rounded,
-                  color: Color(0xFF9CA3AF),
+              color: const Color(0xFFE5E7EB),
+              child: const Icon(Icons.image_not_supported_rounded, color: Color(0xFF9CA3AF)),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  listing.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF0A0A0B)),
                 ),
-              ),
+                const SizedBox(height: 4),
+                Text(
+                  listing.propertyType,
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  listing.pricePerNight + ' / night',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF059669)),
+                ),
+                const SizedBox(height: 8),
+                _actionButton(
+                  label: 'View',
+                  icon: Icons.visibility_outlined,
+                  onTap: () => context.go('/previewListing/${listing.id}', extra: {
+                    'title': listing.name,
+                    'photoUrls': listing.photoUrls,        
+                    'description': listing.description,    
+                  }),                  
+                  filled: false,
+                ),
+              ],
             ),
           ),
-
-          // Info & actions
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    listing.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0A0A0B),
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  _actionButton(
-                    label: 'View',
-                    icon: Icons.visibility_outlined,
-                    onTap: () => context.go('/previewListing/${listing.id}'),
-                    filled: false,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _actionButton({
     required String label,
