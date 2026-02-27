@@ -83,14 +83,9 @@ GoRouter goRouter(Ref ref) {
       GoRoute(
         path: '/googleBusiness',
         builder: (context, state) {
-    final extra = state.extra as Map<String, dynamic>?;
-    return PreviewListingScreen(
-      prefillTitle: extra?['title'],
-      prefillDescription: extra?['description'],
-      photoUrls: extra?['photoUrls'] != null ? List<String>.from(extra!['photoUrls']) : null,
-      listingData: extra, // Passing the whole map for reference
-    );
-  },
+          final data = state.extra as Map<String, dynamic>;
+          return GoogleBusinessScreen(listingData: data);
+        },
       ),
       GoRoute(
         path: '/airbnbProfile',
