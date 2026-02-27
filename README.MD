@@ -19,8 +19,6 @@ RumahGen is an AI-powered mobile web-app that helps rural homestay owners in Mal
 
 ## Technical Architecture
 
-
-
 ### Frontend — Flutter (Dart)
 The mobile web-app handles the full user journey: registration, login, photo upload, voice/text input, listing preview, and the Google Business Profile/Airbnb setup guide. The current prototype uses Flutter which a feature-first architecture, separating code by features. The frontend also separates fetching data logic from backend and UI to keep the frontend modular.
 
@@ -37,7 +35,20 @@ Firebase Authentication handles user login, registration, and Google Sign-In. Fi
 
 ## Implementation Details
 
+### User Flow
+1. Register or Login (Google or Email)
 
+2. Home Dashboard
+
+3. Tap "Create Listing"
+
+4. Provide your homestay info using any combination of: uploading 3 to 10 photos, typing a description, or recording a voice note
+
+5. Gemini AI processes all your inputs: Vision analysis detects room types, outdoor space, and kampung features. Speech transcription converts your voice note to text. Text generation writes a professional description in English. Field extraction pulls structured info like property name, features and facilities.
+
+6. Review the Listing Preview, edit any AI-generated text if needed
+
+7. Export your listing: Copy pre-filled data for Google Business Profile/Airbnb, or follow the step-by-step in-app guide to set up your Google Business Profile/Airbnb listing manually
 
 ### Gemini Prompt Strategy
 Images and text/voice input are submitted to Gemini 1.5 Flash in a single multimodal request. The system prompt instructs the model to act as a hospitality copywriter familiar with Malaysian rural tourism, and to output a structured JSON payload containing the listing title, short description, long description and detected amenities list. The Django view then parses this JSON and persists it to the database.
